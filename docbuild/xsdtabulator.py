@@ -200,7 +200,7 @@ def get_element_desc(elem,elemtree):
                 for doc in ann.findall(XMLS+"documentation"):
                     t=doc.text or ""
                     #remove example data from desc
-                    if t.startswith("Example:"):
+                    if t.startswith("Example:") or t.startswith("Hint:"):
                         continue
                     text=text+decode_desc(t)
                 return text
@@ -216,7 +216,7 @@ def get_element_desc(elem,elemtree):
                 for doc in ann.findall(XMLS+"documentation"):
                     t=doc.text or ""
                     #remove example data from desc
-                    if t.startswith("Example:"):
+                    if t.startswith("Example:") or t.startswith("Hint:"):
                         continue
                     text=text+decode_desc(t)
                 return text
