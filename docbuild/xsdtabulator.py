@@ -192,6 +192,8 @@ def encode_element_name(ename):
     return ename
 
 def get_element_desc(elem,elemtree):
+    if elem is None:
+        return ""
     if elem.get("type"):
         ann=elem.find(XMLS + "annotation")
         if ann is not None:
@@ -229,6 +231,8 @@ def get_element_desc(elem,elemtree):
             return ""
 
 def get_element_example(elem,elemtree):
+    if elem is None:
+        return ""
     if elem.get("type"):
         ann=elem.find(XMLS + "annotation")
         if ann is not None:
