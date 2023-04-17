@@ -94,7 +94,17 @@ def premoustache(ROOT, command, *args):
     if command == "include":
         include_file(ROOT, key)
     
-figure = "./figures/"
+figure = "figures/"
+os.makedirs("./staging", exist_ok=True)
+os.makedirs("./artefact", exist_ok=True)
+#if(os.path.exists("./staging/figures")):
+#    os.remove("./staging/figures")
+#os.symlink("./figures/", "./staging/figures")
+
+if(os.path.exists("./staging/figures")):
+    shutil.rmtree("./staging/figures")
+shutil.copytree("/git/figures", "./staging/figures")
+
 default_schema_file=None
 title_for_section = {}
 def moustache(ROOT, command, *args):
@@ -183,8 +193,7 @@ def extract_section_name(line, prune = lambda x:x.strip()):
         title_for_section[key] = val
 
 if __name__ == "__main__":
-    os.makedirs("./staging", exist_ok=True)
-    os.makedirs("./artefact", exist_ok=True)
+    
     #preprocess the file
     with open("./staging/tmp_" + os.path.basename(sys.argv[1]), "w", encoding="utf-8") as outfile:
         sys.stdout = outfile
@@ -205,16 +214,15 @@ if __name__ == "__main__":
     
     # set the figure interpolation to "figures/" and make a symbolic link such that
     # the resulting interpolation resolves to a real file.
-    figure = "./figures/"
-    if platform.system() == "Windows":
-        # Note, on Windows we recursively copy the figures directory into staging.
-        if(os.path.exists("./staging/figures")):
-            shutil.rmtree("./staging/figures")
-            shutil.copytree("./figures", "../staging/figures")
-    else:
-        if(os.path.exists("./staging/figures")):
-            os.remove("./staging/figures")
-        os.symlink("./figures/", "./staging/figures")
+    #if platform.system() == "Windows":
+    #    # Note, on Windows we recursively copy the figures directory into staging.
+    #if(os.path.exists("./staging/figures")):
+    #    shutil.rmtree("./staging/figures")
+    # shutil.copytree("./figures", "../staging/figures")
+    #else:
+    #if(os.path.exists("./staging/figures")):
+    #    os.remove("./staging/figures")
+    #os.symlink("./figures/", "./staging/figures")
     
     #for from_name, to_name in interp.items():
     with open("./staging/" + os.path.basename(sys.argv[1]), "w", encoding="utf-8") as outfile:

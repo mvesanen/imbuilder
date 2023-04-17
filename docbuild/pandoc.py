@@ -9,7 +9,11 @@ def make_file(suffix, *args):
     # sys.stderr.write(" \\\n    ".join(args) + "\n")
     subprocess.call(args)
 
-common_args = ['--from=markdown+escaped_line_breaks+hard_line_breaks', '--filter=pandoc-xnos', '--number-sections', '--table-of-contents' ]
+respath = '--resource-path=' + os.path.dirname(os.path.abspath(sys.argv[1]))
+# respath = '--resource-path=staging'
+print(respath)
+# print(os.listdir(os.path.dirname(os.path.abspath(sys.argv[1]))+'/figures'))
+common_args = ['--from=markdown+escaped_line_breaks+hard_line_breaks', '--filter=pandoc-xnos', '--number-sections', '--table-of-contents', respath]
 
 latex_args = ['--variable=block-headings']
 for latex_file in ["default", "disable_float", "fignos"]:
