@@ -46,21 +46,6 @@ next_annex.letters = []
 
 def mdForRef(ref): return references[ref].replace(" ", "") + ".md"
 
-# set the figure interpolation to "figures/" and make a symbolic link such that
-# the resulting interpolation resolves to a real file.
-figure = "./figures/"
-os.makedirs("./staging", exist_ok=True)
-os.makedirs("./artefact", exist_ok=True)
-if platform.system() == "Windows":
-    # Note, on Windows we recursively copy the figures directory into staging.
-    if(os.path.exists("./staging/figures")):
-        shutil.rmtree("./staging/figures")
-    shutil.copytree("./figures", "../staging/figures")
-else:
-    if(os.path.exists("./staging/figures")):
-        os.remove("./staging/figures")
-    os.symlink("./figures/", "./staging/figures")
-
 # Files to interpolate:
 # interp = collections.OrderedDict()
 # interp["./markdown/raw-inframodel.md"] = "Inframodel.md"
@@ -68,6 +53,10 @@ else:
 def demoustache_file(infile, ROOT):
     for l in infile:
         demoustache_line(l, ROOT)
+
+def predemoustache_file(infile, ROOT):
+    for l in infile:
+        predemoustache_line(l, ROOT)
 
 def demoustache_line(line, ROOT):
     start = line.find("{{")
@@ -80,12 +69,31 @@ def demoustache_line(line, ROOT):
         start = line.find("{{")
     if line.endswith("\\\n"): line=line[:-2]
     sys.stdout.write(line)
+    
+def predemoustache_line(line, ROOT):
+    start = line.find("{{")
+    while start > -1:
+        sys.stdout.write(line[0:start])
+        end = line.index("}}", start)
+        cmd = line[start+2:end].strip().split()
+        premoustache(ROOT, cmd[0], *cmd[1:])
+        line = line[end+2:]
+        start = line.find("{{")
+    if line.endswith("\\\n"): line=line[:-2]
+    sys.stdout.write(line)
 
 def include_file(ROOT, key):
     if key.endswith(".xml") or key.endswith(".xsd"):
         sys.stdout.write("```xml\n")
     with open(key, encoding="utf-8") as dfile: demoustache_file(dfile, ROOT)
     if key.endswith(".json") or key.endswith(".xml") or key.endswith(".xsd"): sys.stdout.write("\n```\n\n")
+
+
+def premoustache(ROOT, command, *args):
+    key=args[0] if 0 < len(args) else None
+    if command == "include":
+        include_file(ROOT, key)
+    
 
 default_schema_file=None
 title_for_section = {}
@@ -175,16 +183,18 @@ def extract_section_name(line, prune = lambda x:x.strip()):
         title_for_section[key] = val
 
 if __name__ == "__main__":
-    
+    os.makedirs("./staging", exist_ok=True)
+    os.makedirs("./artefact", exist_ok=True)
     #preprocess the file
     with open("./staging/tmp_" + os.path.basename(sys.argv[1]), "w", encoding="utf-8") as outfile:
         sys.stdout = outfile
         with open(sys.argv[1], encoding="utf-8") as infile:
             dirname = os.path.dirname(sys.argv[1])
             os.chdir(dirname)
-            demoustache_file(infile, cwd)
+            predemoustache_file(infile, cwd)
             os.chdir(cwd)
     sys.stdout = sys.__stdout__
+    
     # code to range over our files and extract the section names for the benefit of the refsec macro:
     section_pattern = re.compile("(#+) *(.+) *{#sec:([^}]+)}")
     section_pruner = lambda s:s.replace("*","").strip()
@@ -192,7 +202,19 @@ if __name__ == "__main__":
     with open("./staging/tmp_" + os.path.basename(sys.argv[1]), encoding="utf-8") as infile:
         for line in infile:
             extract_section_name(line, section_pruner)
-                
+    
+    # set the figure interpolation to "figures/" and make a symbolic link such that
+    # the resulting interpolation resolves to a real file.
+    figure = "./figures/"
+    if platform.system() == "Windows":
+        # Note, on Windows we recursively copy the figures directory into staging.
+        if(os.path.exists("./staging/figures")):
+            shutil.rmtree("./staging/figures")
+            shutil.copytree("./figures", "../staging/figures")
+    else:
+        if(os.path.exists("./staging/figures")):
+            os.remove("./staging/figures")
+        os.symlink("./figures/", "./staging/figures")
     
     #for from_name, to_name in interp.items():
     with open("./staging/" + os.path.basename(sys.argv[1]), "w", encoding="utf-8") as outfile:
