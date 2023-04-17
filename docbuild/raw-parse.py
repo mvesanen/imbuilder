@@ -175,11 +175,21 @@ def extract_section_name(line, prune = lambda x:x.strip()):
         title_for_section[key] = val
 
 if __name__ == "__main__":
+    
+    #preprocess the file
+    with open("./staging/tmp_" + os.path.basename(sys.argv[1]), "w", encoding="utf-8") as outfile:
+        sys.stdout = outfile
+        with open(sys.argv[1], encoding="utf-8") as infile:
+            dirname = os.path.dirname(sys.argv[1])
+            os.chdir(dirname)
+            demoustache_file(infile, cwd)
+            os.chdir(cwd)
+    sys.stdout = sys.__stdout__
     # code to range over our files and extract the section names for the benefit of the refsec macro:
     section_pattern = re.compile("(#+) *(.+) *{#sec:([^}]+)}")
     section_pruner = lambda s:s.replace("*","").strip()
     #for from_name, to_name in interp.items():
-    with open(sys.argv[1], encoding="utf-8") as infile:
+    with open("./staging/tmp_" + os.path.basename(sys.argv[1]), encoding="utf-8") as infile:
         for line in infile:
             extract_section_name(line, section_pruner)
                 
