@@ -94,7 +94,7 @@ def premoustache(ROOT, command, *args):
     if command == "include":
         include_file(ROOT, key)
     
-
+figure = "./figures/"
 default_schema_file=None
 title_for_section = {}
 def moustache(ROOT, command, *args):
