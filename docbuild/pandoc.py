@@ -18,7 +18,7 @@ for latex_file in ["default", "disable_float", "fignos"]:
 latex_args.append("--template=/git/templates/pdf-template.latex")
 
 word_args = ['--reference-doc=/git/templates/word-template.docx']
-os.chdir(os.path.dirname(sys.argv[1]))
-make_file("pdf" , *common_args, *latex_args, os.path.basename(sys.argv[1]))
-make_file("docx", *common_args, *word_args , os.path.basename(sys.argv[1]))
+
+make_file("pdf" , *common_args, *latex_args, sys.argv[1])
+make_file("docx", *common_args, *word_args , sys.argv[1])
 
