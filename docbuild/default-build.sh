@@ -19,4 +19,5 @@ ls ./artefact
 mkdir ../git/artefact
 
 cp ./artefact/* ../git/artefact
+cp ./staging/main.md ../git/artefact/inframodel.md
 
