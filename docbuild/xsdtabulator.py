@@ -72,7 +72,10 @@ class TData():
         self.Desc = Desc
         self.Example = Example
 
-def safe_typename(typename):
+def safe_typename(typename,removenamespaceprefix=True):
+    if(removenamespaceprefix==True):
+        if typename.find(":"):
+            typename=typename[typename.find(":")+1:]
     return typename.replace("-", "_")
 
 def findelement(el, typename):
@@ -162,6 +165,8 @@ def decode_element_name(ename):
     ename=ename.replace("--gt","\>")
     ename=ename.replace("__lt"," \<")
     ename=ename.replace("__gt","\>")
+    if(ename.find("__")>0):
+        ename=ename[0:ename.find("__")]
     if(special):
         return ename
     return "\<"+ename+"\>"
@@ -169,10 +174,16 @@ def decode_element_name(ename):
 def get_fake_element_name(ename):
     if(has_special_naming(ename)):
         ename=ename[ename.find("--lt")+4:ename.find("--gt")]
+        if(ename.find("__")>0):
+            ename=ename[0:ename.find("__")]
         return ename
     if(has_special_naming2(ename)):
         ename=ename[ename.find("__lt")+4:ename.find("__gt")]
+        if(ename.find("__")>0):
+            ename=ename[0:ename.find("__")]
         return ename
+    if(ename.find("__")>0):
+        ename=ename[0:ename.find("__")]
     if(has_added_ltgt(ename)):
         ename=ename[ename.find("<")+1:ename.find("\>")]
     if(ename.find("\<")==0):
@@ -352,6 +363,8 @@ def handle_complextype(elem,fieldlist,elemtree):
     for z in elem.getchildren():
         if(z.tag == XMLS + "annotation"):
             continue
+        if(z.tag == XMLS + "any"):
+            continue
         if z.tag == XMLS + "sequence":
             handle_sequence(z,fieldlist,elemtree)
         elif z.tag == XMLS + "choice":
@@ -367,6 +380,8 @@ def handle_sequence(elem,fieldlist,elemtree):
     #print("sequence")
     for z in elem.getchildren():
         if(z.tag == XMLS + "annotation"):
+            continue
+        if(z.tag == XMLS + "any"):
             continue
         if z.tag == XMLS + "sequence":
             handle_sequence(z,fieldlist,elemtree)
@@ -529,7 +544,7 @@ def fieldlist_to_nodes(xsd,rootnode,fl,recursedepth=1):
 
 seen_tables = {}
 def xsd_tabulate(schema_file,typename, chatty=False, leadingStatement=False, codeSnippet=False, tabulate=True, snippetrecurse=0):
-    typename = safe_typename(typename)
+    typename = safe_typename(typename,False)
     xsd = etree.parse(schema_file)
     fl=[]
     is_simple=False

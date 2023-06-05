@@ -88,11 +88,16 @@ def include_file(ROOT, key):
     with open(key, encoding="utf-8") as dfile: demoustache_file(dfile, ROOT)
     if key.endswith(".json") or key.endswith(".xml") or key.endswith(".xsd"): sys.stdout.write("\n```\n\n")
 
+def preinclude_file(ROOT, key):
+    if key.endswith(".xml") or key.endswith(".xsd"):
+        sys.stdout.write("```xml\n")
+    with open(key, encoding="utf-8") as dfile: predemoustache_file(dfile, ROOT)
+    if key.endswith(".json") or key.endswith(".xml") or key.endswith(".xsd"): sys.stdout.write("\n```\n\n")
 
 def premoustache(ROOT, command, *args):
     key=args[0] if 0 < len(args) else None
     if command == "include":
-        include_file(ROOT, key)
+        preinclude_file(ROOT, key)
     
 figure = "figures/"
 os.makedirs("./staging", exist_ok=True)
