@@ -327,7 +327,10 @@ def handle_simpletype(elem,fieldlist,elemtree,exttype=""):
                     maxitems="-1"
                 ma=int(maxitems)
                 mi=int(minitems)
-                u="%d to %d of type %s" % (mi,ma,t)
+                if(mi!=ma):
+                    u="%d to %d of type %s" % (mi,ma,t)
+                else:
+                    u="%d of type %s"% (mi,t)
             else:
                 u="unknown"
             fieldlist.append(TData("ATTR",field,t,u,desc,example))
@@ -419,7 +422,8 @@ def handle_sequence(elem,fieldlist,elemtree):
                     field="Zero or one *%s* element" % elemtype
                 else:
                     field="Zero or more *%s* elements" % elemtype
-            fieldlist.append(TData("ELEM",field,elemtype,use,get_element_desc(z,elemtree),get_element_example(z,elemtree)))
+            if(maxOcc!=0):
+                fieldlist.append(TData("ELEM",field,elemtype,use,get_element_desc(z,elemtree),get_element_example(z,elemtree)))
 
 def handle_element_non_recursive(elem,fieldlist,elemtree):
     mintmp=elem.get("minOccurs") or "1"
