@@ -590,7 +590,7 @@ def xsd_tabulate(schema_file,typename, chatty=False, leadingStatement=False, cod
     if desc_len < 30: desc_len = 30
     tbl_ref = "xtbl_%s" % (typename)
     if seen_tables.get(tbl_ref):
-        print("\nType {} is defined per Table {} above.\n".format(("*%s*" % (decode_element_name(typename))) if (is_simple) else ("*\<%s>*" % typename), "{@tbl:%s}" % (tbl_ref)))
+        print("\nType {} is defined per Table {} above.\n".format(("*%s*" % (decode_element_name(typename))) if (is_simple) else ("*\<%s>*" % decode_element_name(typename)), "{@tbl:%s}" % (tbl_ref)))
         return
     seen_tables[tbl_ref] = True
     if tabulate:
