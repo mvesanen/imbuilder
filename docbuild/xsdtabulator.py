@@ -333,6 +333,11 @@ def handle_simpletype(elem,fieldlist,elemtree,exttype=""):
                     u="%d of type %s"% (mi,t)
             else:
                 u="unknown"
+            if exttype==CONTENT:
+                desc=get_element_desc(elem,elemtree)
+                example=get_element_example(elem,elemtree)
+                t=u
+                u="Required"
             fieldlist.append(TData("ATTR",field,t,u,desc,example))
         elif z.tag == XMLS + "list":
             t=XSType2DocType.get(z.get("itemType"))
@@ -622,7 +627,8 @@ def xsd_tabulate(schema_file,typename, chatty=False, leadingStatement=False, cod
         fieldlist_to_nodes(xsd,root,fl,snippetrecurse)
         print("\n")
         print("XML example of *%s*:" % decode_element_name(typename))
-        print("```xml")
+        print("\\footnotesize")
+        print("\n```xml")
         etree.indent(root)
         xx = etree.tostring(root,encoding='unicode',method='xml',pretty_print=True)
 
@@ -638,7 +644,8 @@ def xsd_tabulate(schema_file,typename, chatty=False, leadingStatement=False, cod
         while new.endswith("\n"):
             new=new[:-1]
         print(new)
-        print("```")
+        print("```\n")
+        print("\\normalsize\n")
 
 if __name__ == "__main__":
     xsd_tabulate(sys.argv[1],sys.argv[2],True,True,True)
