@@ -464,15 +464,41 @@ def handle_element_non_recursive(elem,fieldlist,elemtree):
             field="Zero or more *%s* elements" % elemtype
     fieldlist.append(TData("ELEM",field,elemtype,use,get_element_desc(elem,elemtree),get_element_example(elem,elemtree)))
 
-def handle_choice(elem,fieldlist,elemtree):
+def handle_choice(elem,fieldlist,elemtree,oneof=True):
     #print("choice")
-    for z in elem.getchildren():
-        if z.tag == XMLS + "attribute":
-            fieldlist.append(TData("ATTR",elem.get("name"),get_element_type(elem),get_element_use(elem),get_element_desc(elem,elemtree),get_element_example(elem,elemtree)))
-        elif z.tag == XMLS + "choice":
-            handle_choice(z,fieldlist,elemtree)
-        elif z.tag == XMLS + "element":
-            handle_element_non_recursive(z,fieldlist,elemtree)
+    mintmp=elem.get("minOccurs") or "1"
+    maxtmp=elem.get("maxOccurs") or "1"
+    if(maxtmp=="unbounded"):
+        maxtmp="-1"
+    minOcc=int(mintmp)
+    maxOcc=int(maxtmp)
+    #handle oneof case
+    if (maxOcc==1) and (oneof==True): 
+        if(minOcc>0):
+            use ="Required"
+        else:
+            use="Optional"
+        elems = ""
+        numelems=0
+        for z in elem.getchildren():
+            if z.tag == XMLS + "element":
+                numelems = numelems + 1
+                if z.get("ref") is not None:
+                    elems = elems + "\<" + z.get("ref") + "> or " 
+                else:
+                    elems = elems + "\<" + z.get("name") + "> or " 
+        elems = elems[:-4]
+        fields = "One " + elems + " element"
+        fieldlist.append(TData("CHOICE",fields,elems,use,get_element_desc(elem,elemtree),get_element_example(elem,elemtree)))
+    else:
+        for z in elem.getchildren():
+            if z.tag == XMLS + "attribute":
+                fieldlist.append(TData("ATTR",elem.get("name"),get_element_type(elem),get_element_use(elem),get_element_desc(elem,elemtree),get_element_example(elem,elemtree)))
+            elif z.tag == XMLS + "choice":
+                handle_choice(z,fieldlist,elemtree,False)
+            elif z.tag == XMLS + "element":
+                handle_element_non_recursive(z,fieldlist,elemtree)
+
 def handle_element(elem,fieldlist,elemtree):
     #print("element")
     for z in elem.getchildren():
@@ -551,8 +577,8 @@ def fieldlist_to_nodes(xsd,rootnode,fl,recursedepth=1):
             else:
                 rootnode.set(f.ElemName,f.Example)
 
-seen_tables = {}
-def xsd_tabulate(schema_file,typename, chatty=False, leadingStatement=False, codeSnippet=False, tabulate=True, snippetrecurse=0):
+seen_tables = []
+def xsd_tabulate(schema_file,typename, chatty=False, leadingStatement=False, codeSnippet=False, tabulate=True, snippetrecurse=0, force=False):
     typename = safe_typename(typename,False)
     xsd = etree.parse(schema_file)
     fl=[]
@@ -594,10 +620,12 @@ def xsd_tabulate(schema_file,typename, chatty=False, leadingStatement=False, cod
     # and too narrow!
     if desc_len < 30: desc_len = 30
     tbl_ref = "xtbl_%s" % (typename)
-    if seen_tables.get(tbl_ref):
-        print("\nType {} is defined per Table {} above.\n".format(("*%s*" % (decode_element_name(typename))) if (is_simple) else ("*\<%s>*" % decode_element_name(typename)), "{@tbl:%s}" % (tbl_ref)))
+    if tbl_ref in seen_tables and (force==False):
+        print("\nType {} is defined per Table {} above.\n".format(("*%s*" % (decode_element_name(typename))), "{@tbl:%s}" % (tbl_ref)))
         return
-    seen_tables[tbl_ref] = True
+    seen_tables.append(tbl_ref)
+    if(seen_tables.count(tbl_ref)>1):
+        tbl_ref = "%s%d" % (tbl_ref,seen_tables.count(tbl_ref))
     if tabulate:
         FMT = """|%-{}s|%-{}s|%-{}s|%-{}s|""".format(field_len, types_len, use_len, desc_len)
         if leadingStatement:

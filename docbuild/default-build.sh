@@ -13,7 +13,8 @@ time python ./raw-parse.py $1
 echo
 echo "Generating documents ..."
 
-ls ./staging/figures
+cp ./staging/figures/inframodel.png ./inframodel.png
+cp ./staging/figures/inframodel.png ./staging/inframodel.png
 
 time python ./pandoc.py staging/$(basename $1)
 

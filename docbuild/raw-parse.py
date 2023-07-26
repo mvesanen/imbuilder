@@ -138,15 +138,17 @@ def moustache(ROOT, command, *args):
         elif default_schema_file is not None: schema_file = default_schema_file
         else: raise ValueError("no schema file given!")
         # sys.stdout.write(scheme_for(key, schema_file))
-    elif command in ["xtabulate", "xtabulate2", "xtabulate3", "xtabulate4", "xtabulate5"]:
+    elif command in ["xtabulate", "xtabulate2", "xtabulate3", "xtabulate4", "xtabulate5", "xtabulatef"]:
         if len(args) > 1: schema_file = args[1]
         elif default_schema_file is not None: schema_file = default_schema_file
         else: raise ValueError("no schema file given!")
         chatty = (command in ["xtabulate3"])
-        leadingStatement = (command in ["xtabulate", "xtabulate3", "xtabulate4"])
+        leadingStatement = (command in ["xtabulate", "xtabulate3", "xtabulate4","xtabulatef"])
         codesnippet = (command in ["xtabulate4", "xtabulate5"])
         if(command =="xtabulate5"):
             xsd_tabulate(schema_file,key, chatty, leadingStatement,codesnippet,True,5)
+        elif (command == "xtabulatef"):
+            xsd_tabulate(schema_file,key, chatty, leadingStatement,codesnippet,True,0,True)
         else:
             xsd_tabulate(schema_file,key, chatty, leadingStatement,codesnippet)
     elif command == "xmlsnippet":
