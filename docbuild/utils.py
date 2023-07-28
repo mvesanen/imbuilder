@@ -10,7 +10,7 @@ def get_git_branch_head_SHA1():
     return subprocess.check_output("git rev-parse HEAD", shell=True).rstrip().decode("utf-8")[0:8]
 
 def get_doc_version():
-    return "**branch** %s **sha** %s **at** %s" % (
+    return "branch: %s sha: %s at: %s" % (
         get_git_branch_name(),
         get_git_branch_head_SHA1(),
         datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"))
