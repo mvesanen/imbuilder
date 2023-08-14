@@ -18,9 +18,12 @@ cp ./staging/figures/logo/* ./staging
 
 time python ./pandoc.py staging/$(basename $1)
 
+time python ./schemaprocessor.py $2 ./artefact/$3
+
 ls ./artefact
 
 mkdir ../git/artefact
+
 
 cp ./artefact/* ../git/artefact
 cp ./staging/main.md ../git/artefact/inframodel.md
