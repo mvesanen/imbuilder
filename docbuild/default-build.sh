@@ -22,8 +22,6 @@ time python ./schemaprocessor.py $2 ./artefact/$3
 
 ls ./artefact
 
-mkdir ../git/artefact
-
 
 cp ./artefact/* ../git/artefact
 cp ./staging/main.md ../git/artefact/inframodel.md
