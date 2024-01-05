@@ -16,7 +16,7 @@ echo "Generating documents ..."
 cp ./staging/figures/logo/* ./
 cp ./staging/figures/logo/* ./staging
 
-time python ./pandoc-gen.py staging/$(basename $1) 
+time python ./pandoc-gen.py staging/$(basename $1) $2
 
 # time python ./schemaprocessor.py $2 ./artefact/$3
 
