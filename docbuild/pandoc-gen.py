@@ -4,7 +4,7 @@ import subprocess
 import sys
 
 def make_file(basename, *args):
-    sys.stderr.write("generating %s file ...\n" % (suffix))
+    sys.stderr.write("generating %s file ...\n" % (basename))
     args = ['pandoc', '--output=./artefact/' + basename] + list(args)
     # sys.stderr.write(" \\\n    ".join(args) + "\n")
     subprocess.call(args)
