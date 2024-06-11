@@ -22,6 +22,7 @@ time python ./schemaprocessor.py $2 ./artefact/$3
 
 ls ./artefact
 
+java -jar plantuml.jar -testdot
 
 cp ./artefact/* ../git/artefact
 cp ./staging/main.md ../git/artefact/inframodel.md
