@@ -10,6 +10,7 @@ import os.path
 import platform
 import glob
 import shutil
+import subprocess
 from xsdtabulator import xsd_tabulate
 from utils import get_doc_version
 
@@ -29,26 +30,6 @@ from utils import get_doc_version
   {{figst ID}}                   - apply default figure styles and set optional id (alphanum-_)+ for figure number referencing
   {{figref ID}}                  - insert a reference to a figure
 """
-
-def next_annex():
-    next_annex.N += 1
-    asB = lambda n: [n] if n<26 else asB(n//26-1) + [n%26]
-    letters = "".join(["ABCDEFGHIJKLMNOPQRSTUVWXYZ"[j] for j in asB(next_annex.N-1)])
-    next_annex.letters.append(letters)
-    return "Annex " + letters
-next_annex.N = 0
-next_annex.letters = []
-
-# References to transform:
-#references = {
-#    
-#}
-
-def mdForRef(ref): return references[ref].replace(" ", "") + ".md"
-
-# Files to interpolate:
-# interp = collections.OrderedDict()
-# interp["./markdown/raw-inframodel.md"] = "Inframodel.md"
 
 def demoustache_file(infile, ROOT):
     for l in infile:
@@ -100,6 +81,7 @@ def premoustache(ROOT, command, *args):
         preinclude_file(ROOT, key)
     
 figure = "figures/"
+diagrampath = "../diagrams/"
 os.makedirs("./staging", exist_ok=True)
 os.makedirs("./artefact", exist_ok=True)
 #if(os.path.exists("./staging/figures")):
@@ -115,10 +97,7 @@ title_for_section = {}
 def moustache(ROOT, command, *args):
     global default_schema_file
     key=args[0] if 0 < len(args) else None
-    if command == "ref":
-        txt = references[key]
-        sys.stdout.write(txt)
-    elif command == "typeref":
+    if command == "typeref":
         sys.stdout.write("""*%s*""" % (key))
     elif command == "refsec" or command == "refto":
         section = "subsection"
@@ -133,11 +112,6 @@ def moustache(ROOT, command, *args):
         sys.stdout.write(get_doc_version())
     elif command == "date":
         sys.stdout.write(get_doc_version())
-    elif command == "extract":
-        if len(args) > 1: schema_file = args[1]
-        elif default_schema_file is not None: schema_file = default_schema_file
-        else: raise ValueError("no schema file given!")
-        # sys.stdout.write(scheme_for(key, schema_file))
     elif command in ["xtabulate", "xtabulate2", "xtabulate3", "xtabulate4", "xtabulate5", "xtabulatef"]:
         if len(args) > 1: schema_file = args[1]
         elif default_schema_file is not None: schema_file = default_schema_file
@@ -163,6 +137,12 @@ def moustache(ROOT, command, *args):
         xsd_tabulate(schema_file,key, False, False, True,True,5)
     elif command == "figure":
         sys.stdout.write(figure + key)
+    elif command == "diagram":
+        cmdres=subprocess.run(["java", "-jar", "/docbuild/plantuml.jar" ,"-o" , "/docbuild/staging/figures/", diagrampath+key, "-tpng"],capture_output=True)
+        if (cmdres.returncode!=0):
+            raise RuntimeError(cmdres.stdout+cmdres.stderr)
+        basename = os.path.splitext(key)[0]
+        sys.stdout.write(figure + basename+'.png')
     elif command == "figst":
         if len(args) > 0:
             figure_id = args[0]
@@ -174,10 +154,6 @@ def moustache(ROOT, command, *args):
         sys.stdout.write('Figure {@fig:%s}' %(figure_id))
     elif command == "schemafile":
         default_schema_file = key
-    elif command == "term":
-        s = "%s**%s**\n" % ("\\\\*", " ".join(args))
-        sys.stdout.write(s)
-        sys.stderr.write(s)
     else:
         raise ValueError("what to do with command %s?" % (command))
 
@@ -218,18 +194,6 @@ if __name__ == "__main__":
     with open("./staging/tmp_" + os.path.basename(sys.argv[1]), encoding="utf-8") as infile:
         for line in infile:
             extract_section_name(line, section_pruner)
-    
-    # set the figure interpolation to "figures/" and make a symbolic link such that
-    # the resulting interpolation resolves to a real file.
-    #if platform.system() == "Windows":
-    #    # Note, on Windows we recursively copy the figures directory into staging.
-    #if(os.path.exists("./staging/figures")):
-    #    shutil.rmtree("./staging/figures")
-    # shutil.copytree("./figures", "../staging/figures")
-    #else:
-    #if(os.path.exists("./staging/figures")):
-    #    os.remove("./staging/figures")
-    #os.symlink("./figures/", "./staging/figures")
     
     #for from_name, to_name in interp.items():
     with open("./staging/" + os.path.basename(sys.argv[1]), "w", encoding="utf-8") as outfile:
