@@ -23,6 +23,6 @@ time python ./pandoc-gen.py staging/$(basename $1) $2
 # ls ./artefact
 
 cp ./artefact/* ../git/artefact
-# cp -r ./staging/* ../git/staging
-# cp ./staging/main.md ../git/artefact/inframodel.md
+#cp -r /docbuild/staging/* ../git/staging
+#cp ./staging/$(basename $1) ../git/artefact/output.md
 

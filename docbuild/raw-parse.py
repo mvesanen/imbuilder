@@ -11,6 +11,7 @@ import platform
 import glob
 import shutil
 import subprocess
+import shlex
 from xsdtabulator import xsd_tabulate
 from utils import get_doc_version
 
@@ -30,10 +31,21 @@ from utils import get_doc_version
   {{figst ID}}                   - apply default figure styles and set optional id (alphanum-_)+ for figure number referencing
   {{figref ID}}                  - insert a reference to a figure
 """
+UMLBlock=""
 
 def demoustache_file(infile, ROOT):
+    global UMLBlock
+    InsideUMLBlock=False
     for l in infile:
-        demoustache_line(l, ROOT)
+        if(l.startswith('@start')):
+            UMLBlock=""
+            InsideUMLBlock=True
+        if(InsideUMLBlock):
+            UMLBlock+=l
+        else:
+            demoustache_line(l, ROOT)
+        if(l.startswith('@end')):
+            InsideUMLBlock=False
 
 def predemoustache_file(infile, ROOT):
     for l in infile:
@@ -44,7 +56,7 @@ def demoustache_line(line, ROOT):
     while start > -1:
         sys.stdout.write(line[0:start])
         end = line.index("}}", start)
-        cmd = line[start+2:end].strip().split()
+        cmd = shlex.split(line[start+2:end].strip())
         moustache(ROOT, cmd[0], *cmd[1:])
         line = line[end+2:]
         start = line.find("{{")
@@ -96,6 +108,7 @@ default_schema_file=None
 title_for_section = {}
 def moustache(ROOT, command, *args):
     global default_schema_file
+    global UMLBlock
     key=args[0] if 0 < len(args) else None
     if command == "typeref":
         sys.stdout.write("""*%s*""" % (key))
@@ -138,6 +151,14 @@ def moustache(ROOT, command, *args):
     elif command == "figure":
         sys.stdout.write(figure + key)
     elif command == "diagram":
+        uml_file = open('/docbuild/staging/%s.pu' % args[1] , "w")
+        uml_file.write(UMLBlock)
+        uml_file.close()
+        cmdres=subprocess.run(["java", "-jar", "/docbuild/plantuml.jar" ,"-o" , "/docbuild/staging/figures/", "/docbuild/staging/%s.pu" % args[1], "-tsvg"],capture_output=True)
+        if (cmdres.returncode!=0):
+            raise RuntimeError(cmdres.stdout+cmdres.stderr)
+        sys.stdout.write( '![%s](%s.svg "%s"){#fig:%s width="90%%"}' % (key,figure + args[1],key,args[1]))
+    elif command == "diagramasfigure":
         cmdres=subprocess.run(["java", "-jar", "/docbuild/plantuml.jar" ,"-o" , "/docbuild/staging/figures/", diagrampath+key, "-tpng"],capture_output=True)
         if (cmdres.returncode!=0):
             raise RuntimeError(cmdres.stdout+cmdres.stderr)

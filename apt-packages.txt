@@ -1,1 +1,1 @@
-pandoc texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended texlive-fonts-extra git-all default-jre graphviz
+pandoc texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended texlive-fonts-extra git-all default-jre graphviz librsvg2-bin
