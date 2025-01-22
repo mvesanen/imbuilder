@@ -30,16 +30,23 @@ from utils import get_doc_version
   {{figure IMAGE}}               - path to IMAGE, where IMAGE is a path relative to ./figures
   {{figst ID}}                   - apply default figure styles and set optional id (alphanum-_)+ for figure number referencing
   {{figref ID}}                  - insert a reference to a figure
+  {{release_directory}}          - fetch release directory 
 """
 UMLBlock=""
 
 def demoustache_file(infile, ROOT):
     global UMLBlock
+    global plantuml_header_file
     InsideUMLBlock=False
     for l in infile:
         if(l.startswith('@start')):
-            UMLBlock=""
+            UMLBlock=l
+            #if(plantuml_header_file is not None):
+            #    with open(plantuml_header_file, encoding="utf-8") as hfile:
+            #        for hline in hfile:
+            #            UMLBlock+=hline
             InsideUMLBlock=True
+        #else:
         if(InsideUMLBlock):
             UMLBlock+=l
         else:
@@ -105,10 +112,14 @@ if(os.path.exists("./staging/figures")):
 shutil.copytree("/git/figures", "./staging/figures")
 
 default_schema_file=None
+plantuml_header_file=None
+is_landscape=False;
 title_for_section = {}
 def moustache(ROOT, command, *args):
     global default_schema_file
+    global plantuml_header_file
     global UMLBlock
+    global is_landscape
     key=args[0] if 0 < len(args) else None
     if command == "typeref":
         sys.stdout.write("""*%s*""" % (key))
@@ -154,27 +165,51 @@ def moustache(ROOT, command, *args):
         uml_file = open('/docbuild/staging/%s.pu' % args[1] , "w")
         uml_file.write(UMLBlock)
         uml_file.close()
-        cmdres=subprocess.run(["java", "-jar", "/docbuild/plantuml.jar" ,"-o" , "/docbuild/staging/figures/", "/docbuild/staging/%s.pu" % args[1], "-tsvg"],capture_output=True)
+        if(plantuml_header_file is not None):
+            cmdres=subprocess.run(["java", "-jar", "/docbuild/plantuml.jar" ,"-o" , "/docbuild/staging/figures/", "/docbuild/staging/%s.pu" % args[1], "-tsvg", "-config", plantuml_header_file],capture_output=True)
+        else:
+            cmdres=subprocess.run(["java", "-jar", "/docbuild/plantuml.jar" ,"-o" , "/docbuild/staging/figures/", "/docbuild/staging/%s.pu" % args[1], "-tsvg"],capture_output=True)
         if (cmdres.returncode!=0):
             raise RuntimeError(cmdres.stdout+cmdres.stderr)
-        sys.stdout.write( '![%s](%s.svg "%s"){#fig:%s width="90%%"}' % (key,figure + args[1],key,args[1]))
+        if(is_landscape):
+            w=' width="90%%"'
+        else:
+            w=''
+        sys.stdout.write( '![%s](%s.svg "%s"){#fig:%s%s}' % (key,figure + args[1],key,args[1],w))
     elif command == "diagramasfigure":
-        cmdres=subprocess.run(["java", "-jar", "/docbuild/plantuml.jar" ,"-o" , "/docbuild/staging/figures/", diagrampath+key, "-tpng"],capture_output=True)
+        if(plantuml_header_file is not None):
+            cmdres=subprocess.run(["java", "-jar", "/docbuild/plantuml.jar" ,"-o" , "/docbuild/staging/figures/", diagrampath+key, "-tpng", "-config", plantuml_header_file],capture_output=True)
+        else:
+            cmdres=subprocess.run(["java", "-jar", "/docbuild/plantuml.jar" ,"-o" , "/docbuild/staging/figures/", diagrampath+key, "-tpng"],capture_output=True)
         if (cmdres.returncode!=0):
             raise RuntimeError(cmdres.stdout+cmdres.stderr)
         basename = os.path.splitext(key)[0]
         sys.stdout.write(figure + basename+'.png')
     elif command == "figst":
-        if len(args) > 0:
-            figure_id = args[0]
-            sys.stdout.write('{#fig:%s width="90%%"}' % (figure_id))
+        if(is_landscape):
+            if len(args) > 0:
+                sys.stdout.write('{#fig:%s}' % args[0])
         else:
-            sys.stdout.write('{width="90%"}')
+            if len(args) > 0:
+                figure_id = args[0]
+                sys.stdout.write('{#fig:%s width="90%%"}' % (figure_id))
+            else:
+                sys.stdout.write('{width="90%"}')
     elif command == "figref":
         figure_id = args[0]
         sys.stdout.write('Figure {@fig:%s}' %(figure_id))
     elif command == "schemafile":
         default_schema_file = key
+    elif command == "plantumlheader":
+        plantuml_header_file = key
+    elif command == "begin_landscape":
+        sys.stdout.write("\\blandscape\n")
+        is_landscape=True
+    elif command == "end_landscape":
+        sys.stdout.write("\\elandscape\n")
+        is_landscape=False
+    elif command == "release_directory":
+        sys.stdout.write(sys.argv[2])
     else:
         raise ValueError("what to do with command %s?" % (command))
 

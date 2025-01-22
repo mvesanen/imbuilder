@@ -1,7 +1,16 @@
 % Add a watermark while we are generating draft docs:
-%`\usepackage{draftwatermark}
-%
+% \usepackage{draftwatermark}
 % Move our tables to the left:
 \usepackage{longtable}\setlength{\LTleft}{0em}
 % Allow our tables to wrap on underscores
 \usepackage{underscore}
+\usepackage[normalem]{ulem}
+\usepackage{typearea}
+\usepackage{pdflscape}
+\newcommand{\blandscape}{\begin{landscape}}
+\newcommand{\elandscape}{\end{landscape}}
+% \usepackage{rotating}
+% \newcommand{\bsidewaysfigure}{\begin{sidewaysfigure}}
+% \newcommand{\esidewaysfigure}{\end{sidewaysfigure}}
+\newcommand{\removed}[1]{\colorbox{pink}{\sout{#1}}}
+\newcommand{\added}[1]{\colorbox{lime}{#1}}
