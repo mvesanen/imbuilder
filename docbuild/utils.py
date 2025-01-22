@@ -20,15 +20,18 @@ def get_git_origin_url(path=""):
     return subprocess.check_output(get_cmd(path)+"remote get-url origin", shell=True).rstrip().decode("utf-8")
 
 def get_git_current_tag(path=""):
-    tmp = subprocess.check_output(get_cmd(path)+"describe --tags --exact-match HEAD", shell=True).rstrip().decode("utf-8")
-    if "fatal:" not in tmp:
-        return tmp
-    return get_git_branch_name(path)
+    try:
+        tmp = subprocess.check_output(get_cmd(path)+"describe --tags --exact-match HEAD", shell=True).rstrip().decode("utf-8")
+        if "fatal:" not in tmp:
+            return tmp
+        return get_git_branch_name(path)
+    except:
+        return get_git_branch_name(path)
 
 def get_doc_version(path=""):
-    return "%s\nbranch: %s sha: %s at: %s" % (
+    return "%s:%s sha: %s at: %s" % (
         get_git_origin_url(path),
-        get_git_branch_name(path),
+        get_git_current_tag(path),
         get_git_branch_head_SHA1(path),
         datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"))
 
