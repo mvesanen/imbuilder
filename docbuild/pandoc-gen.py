@@ -5,7 +5,7 @@ import sys
 
 def make_file(basename, *args):
     sys.stderr.write("generating %s file ...\n" % (basename))
-    args = ['pandoc', '--output=basename] + list(args)
+    args = ['pandoc', '--output=./artefact/' + basename] + list(args)
     # sys.stderr.write(" \\\n    ".join(args) + "\n")
     subprocess.call(args)
 
@@ -15,7 +15,7 @@ respath = '--resource-path=' + os.path.dirname(os.path.abspath(sys.argv[1]))
 # print(os.listdir(os.path.dirname(os.path.abspath(sys.argv[1]))+'/figures'))
 common_args = ['--from=markdown+escaped_line_breaks+hard_line_breaks', '--filter=pandoc-xnos', '--number-sections', '--table-of-contents', respath]
 
-latex_args = ['--variable=block-headings','--pdf-engine=pdflatex']
+latex_args = ['--variable=block-headings']
 for latex_file in ["default", "disable_float", "fignos"]:
     latex_args.append("--include-in-header=./%s.latex" % (latex_file))
 
